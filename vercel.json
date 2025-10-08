@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "pages/api/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "MAILCHIMP_API_KEY": "@mailchimp_api_key",
+    "MAILCHIMP_SERVER_PREFIX": "@mailchimp_server_prefix",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "ADMIN_EMAIL": "@admin_email",
+    "FROM_EMAIL": "@from_email",
+    "MAIN_APP_URL": "@main_app_url"
+  }
+}
