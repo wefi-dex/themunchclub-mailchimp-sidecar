@@ -5,9 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node test-with-printer.js",
-    "start": "node server.js",
+    "dev": "node server.js",
     "test": "node test-comprehensive.js",
+    "test-with-printer": "node test-with-printer.js",
     "test-email": "node test-email-only.js",
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 stop munchclub-sidecar",
