@@ -1,0 +1,71 @@
+service: themunchclub-mailchimp-sidecar
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    MAILCHIMP_API_KEY: ${env:MAILCHIMP_API_KEY}
+    MAILCHIMP_SERVER_PREFIX: ${env:MAILCHIMP_SERVER_PREFIX}
+    MAILCHIMP_TRANSACTIONAL_API_KEY: ${env:MAILCHIMP_TRANSACTIONAL_API_KEY}
+    ADMIN_EMAIL: ${env:ADMIN_EMAIL}
+    FROM_EMAIL: ${env:FROM_EMAIL}
+    MAIN_APP_URL: ${env:MAIN_APP_URL}
+    SIDECAR_URL: ${env:SIDECAR_URL}
+    PRINTER_URL: ${env:PRINTER_URL}
+    PRINTER_API_EMAIL: ${env:PRINTER_API_EMAIL}
+    PRINTER_API_PASSWORD: ${env:PRINTER_API_PASSWORD}
+    STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+    STRIPE_WEBHOOK_SECRET: ${env:STRIPE_WEBHOOK_SECRET}
+
+functions:
+  stripeWebhook:
+    handler: pages/api/stripe-webhook.handler
+    events:
+      - http:
+          path: api/stripe-webhook
+          method: post
+          cors: true
+
+  stripeWebhookWithPrinter:
+    handler: pages/api/stripe-webhook-with-printer.handler
+    events:
+      - http:
+          path: api/stripe-webhook-with-printer
+          method: post
+          cors: true
+
+  printerStatusWebhook:
+    handler: pages/api/printer-status-webhook.handler
+    events:
+      - http:
+          path: api/printer-status-webhook
+          method: post
+          cors: true
+
+  orderStatusWebhook:
+    handler: pages/api/order-status-webhook.handler
+    events:
+      - http:
+          path: api/order-status-webhook
+          method: post
+          cors: true
+
+  passwordReset:
+    handler: pages/api/password-reset.handler
+    events:
+      - http:
+          path: api/password-reset
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    host: 0.0.0.0
