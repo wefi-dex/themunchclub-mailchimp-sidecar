@@ -147,6 +147,37 @@ app.post('/api/password-reset', async (req, res) => {
   }
 })
 
+// User registration webhook endpoint
+app.post('/api/user-registration-webhook', async (req, res) => {
+  try {
+    console.log('User registration webhook received:', req.body)
+    
+    const { userId, email, name, timestamp } = req.body
+
+    if (!userId || !email) {
+      return res.status(400).json({ error: 'userId and email are required' })
+    }
+
+    // For now, just simulate the email sending without database operations
+    console.log(`✅ Would send welcome email to: ${email} (${name})`)
+    console.log(`📧 Email details: userId=${userId}, timestamp=${timestamp}`)
+
+    res.status(200).json({ 
+      message: 'Welcome email would be sent successfully',
+      user: {
+        id: userId,
+        name: name || 'New User',
+        email: email
+      },
+      timestamp: new Date().toISOString(),
+      note: 'Database operations disabled for testing'
+    })
+  } catch (error) {
+    console.error('User registration webhook error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error)
