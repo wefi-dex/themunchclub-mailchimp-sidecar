@@ -54,9 +54,9 @@ export default async function handler(req, res) {
         console.log('✅ Shipped email sent for order:', order._id);
       }
 
-    // If printer success, send book download notification via Mandrill
+    // If printed, send book download notification via Mandrill
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'success') {
+    if (normalized === 'printed') {
       const db = await getDb();
       const fullOrder = await db.collection('Order').findOne({ _id: result.orderId }, { projection: { userId: 1, basketItems: 1 } });
       if (fullOrder) {
