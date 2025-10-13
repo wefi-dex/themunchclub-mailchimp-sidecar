@@ -24,31 +24,60 @@ app.get('/health', (req, res) => {
   })
 })
 
-// Stripe webhook endpoint
+// Stripe webhook endpoint for order emails
 app.post('/api/stripe-webhook', async (req, res) => {
   try {
-    console.log('Stripe webhook received:', req.body)
+    console.log('Stripe webhook received from main app:', req.body)
     
-    // Process the webhook
-    const { type, data } = req.body
+    const { paymentIntent, order } = req.body
     
-    if (type === 'payment_intent.succeeded') {
-      // Send admin notification
-      const orderInfo = {
-        orderId: data.object.metadata?.orderId || 'unknown',
-        printerOrderId: data.object.metadata?.printerOrderId || 'unknown',
-        orderDate: new Date(),
-        customerName: data.object.metadata?.customerName || 'Unknown',
-        customerEmail: data.object.metadata?.customerEmail || 'unknown@example.com',
-        totalValue: data.object.amount / 100, // Convert from cents
-        items: JSON.parse(data.object.metadata?.items || '[]'),
-        shippingAddress: JSON.parse(data.object.metadata?.shippingAddress || '{}')
-      }
-      
-      await sendAdminNotification(orderInfo)
+    if (!paymentIntent || !order) {
+      return res.status(400).json({ error: 'Missing paymentIntent or order data' })
     }
     
-    res.json({ received: true })
+    // Extract order information
+    const orderInfo = {
+      orderId: order.id,
+      printerOrderId: order.printerOrderIds?.[0] || 'pending',
+      orderDate: order.createdAt,
+      customerName: order.user?.name || 'Customer',
+      customerEmail: order.user?.email || paymentIntent.metadata?.email,
+      totalValue: paymentIntent.amount / 100, // Convert from cents
+      items: order.basketItems?.map(item => ({
+        bookTitle: item.book?.title || 'Unknown Book',
+        type: item.type,
+        productCode: `MC-${item.type?.substring(0, 2).toUpperCase()}`,
+        quantity: item.quantity,
+        value: item.typePrice?.price * item.quantity || 0
+      })) || [],
+      shippingAddress: {
+        firstName: 'Customer',
+        lastName: order.user?.name || 'Name',
+        addressLine1: 'Address',
+        addressLine2: '',
+        town: 'City',
+        county: 'County',
+        postCode: 'Postcode',
+        country: 'Country'
+      }
+    }
+    
+    // Send admin notification
+    await sendAdminNotification(orderInfo)
+    
+    // Send customer confirmation
+    if (order.user) {
+      const { sendOrderConfirmation } = await import('./lib/mailchimp.js')
+      await sendOrderConfirmation(order.user, order)
+    }
+    
+    console.log('✅ Order emails sent successfully for order:', order.id)
+    
+    res.status(200).json({ 
+      success: true, 
+      message: 'Order emails sent successfully',
+      orderId: order.id 
+    })
   } catch (error) {
     console.error('Stripe webhook error:', error)
     res.status(500).json({ error: error.message })
