@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
 import { sendOrderShipped } from '../lib/mailchimp.js';
 
 const prisma = new PrismaClient();
@@ -47,7 +48,16 @@ export default async function handler(req, res) {
 
     // If shipped, send email
     if (status.toLowerCase() === 'shipped' && trackingUrl) {
-      await sendOrderShipped(order.user, order, trackingUrl);
+      // Fetch shipping address from main app API
+      let shippingAddress = null;
+      try {
+        const { data } = await axios.get(`${process.env.MAIN_APP_URL}/api/order/orderShipping`, {
+          params: { printerOrderId: orderId }
+        });
+        shippingAddress = data?.shippingAddress || null;
+      } catch (_) {}
+
+      await sendOrderShipped(order.user, order, trackingUrl, shippingAddress);
       
       // Log communication
       await prisma.communication.create({
