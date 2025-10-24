@@ -26,9 +26,7 @@ app.get('/health', (req, res) => {
 
 // Stripe webhook endpoint for order emails
 app.post('/api/stripe-webhook', async (req, res) => {
-  try {
-    console.log('Stripe webhook received from main app:', req.body)
-    
+  try {    
     const { paymentIntent, order } = req.body
     
     if (!paymentIntent || !order) {
@@ -71,7 +69,6 @@ app.post('/api/stripe-webhook', async (req, res) => {
       await sendOrderConfirmation(order.user, order)
     }
     
-    console.log('✅ Order emails sent successfully for order:', order.id)
     
     res.status(200).json({ 
       success: true, 
@@ -87,7 +84,6 @@ app.post('/api/stripe-webhook', async (req, res) => {
 // Stripe webhook with printer integration
 app.post('/api/stripe-webhook-with-printer', async (req, res) => {
   try {
-    console.log('Stripe webhook with printer received:', req.body)
     
     const { type, data } = req.body
     
@@ -109,7 +105,6 @@ app.post('/api/stripe-webhook-with-printer', async (req, res) => {
       // Send to printer
       try {
         await sendToPrinter(orderInfo)
-        console.log('Order sent to printer successfully')
       } catch (printerError) {
         console.error('Printer integration failed:', printerError)
         // Don't fail the webhook if printer fails
@@ -126,14 +121,12 @@ app.post('/api/stripe-webhook-with-printer', async (req, res) => {
 // Printer status webhook
 app.post('/api/printer-status-webhook', async (req, res) => {
   try {
-    console.log('Printer status webhook received:', req.body)
     
     // Process printer status update
     const { orderId, status, trackingNumber, estimatedDelivery } = req.body
     
     // Update order status in database
     // This would typically update your database
-    console.log(`Order ${orderId} status updated to: ${status}`)
     
     res.json({ received: true })
   } catch (error) {
@@ -145,12 +138,10 @@ app.post('/api/printer-status-webhook', async (req, res) => {
 // Order status webhook
 app.post('/api/order-status-webhook', async (req, res) => {
   try {
-    console.log('Order status webhook received:', req.body)
     
     // Process order status update
     const { orderId, status } = req.body
     
-    console.log(`Order ${orderId} status updated to: ${status}`)
     
     res.json({ received: true })
   } catch (error) {
@@ -162,7 +153,6 @@ app.post('/api/order-status-webhook', async (req, res) => {
 // Password reset endpoint
 app.post('/api/password-reset', async (req, res) => {
   try {
-    console.log('Password reset request received:', req.body)
     
     const { email, resetUrl } = req.body
     
@@ -179,7 +169,6 @@ app.post('/api/password-reset', async (req, res) => {
 // User registration webhook endpoint
 app.post('/api/user-registration-webhook', async (req, res) => {
   try {
-    console.log('User registration webhook received:', req.body)
     
     const { userId, email, name, timestamp } = req.body
 
@@ -188,9 +177,6 @@ app.post('/api/user-registration-webhook', async (req, res) => {
     }
 
     // For now, just simulate the email sending without database operations
-    console.log(`✅ Would send welcome email to: ${email} (${name})`)
-    console.log(`📧 Email details: userId=${userId}, timestamp=${timestamp}`)
-
     res.status(200).json({ 
       message: 'Welcome email would be sent successfully',
       user: {
